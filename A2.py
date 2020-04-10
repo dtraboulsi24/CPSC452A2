@@ -67,6 +67,7 @@ class DES_cipher(CipherInterface):
     # def encrypt(self, lists, key):
     def encrypt(self, buffer, block_size):
         print("buffer: ", buffer)
+        print("buffer size: ", len(buffer))
         print("block size: ", block_size)
         # encrypt and add padding if neccessary
         # while len(buffer) % 8 != 0:
@@ -76,7 +77,7 @@ class DES_cipher(CipherInterface):
         if len(buffer) % 8 != 0:
             ciphertext = x.encrypt(pad(buffer, block_size))
         else:
-            ciphertext = x.decrypt(buffer)
+            ciphertext = x.encrypt(buffer)
 
         print("ciphertext: ", ciphertext)
         return ciphertext
@@ -84,6 +85,7 @@ class DES_cipher(CipherInterface):
     # def decrypt(self, output, matrix):
     def decrypt(self, buffer, block_size):
         print("buffer: ", buffer)
+        print("buffer size: ", len(buffer))
         print("block size: ", block_size)
         # decrypt and add padding if neccessary
         # while len(buffer) % 8 != 0:
@@ -95,7 +97,18 @@ class DES_cipher(CipherInterface):
         else:
             plaintext = x.decrypt(buffer)        
 
-        print("plaintext: ", plaintext)
+        print("plaintext before replacing padding: ", plaintext)
+        # if ('\x01' in plaintext.decode('ASCII')):
+        #     print("padding found!")
+        #     pt_string = str(plaintext)
+        #     plaintext_ascii = pt_string.encode("ascii", "ignore")
+        #     plaintext = plaintext_ascii.decode()
+        #     pt_bytes = plaintext.encode()
+        #     print(pt_bytes)
+        #     return pt_bytes
+        #     print("plaintext decoded: ", plaintext.decode('ASCII'))
+
+        print("plaintext after replacing padding: ", plaintext)
         return plaintext
 
 # note: buffer size = 8 was in 2nd param before
