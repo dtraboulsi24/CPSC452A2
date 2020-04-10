@@ -47,7 +47,6 @@ class AES_cipher(CipherInterface):
             ciphertext = y.encrypt(buffer)
         print("ciphertext: ", ciphertext)
         return ciphertext
-        # pass
 
     def decrypt(self, buffer, block_size):
         print("buffer: ", buffer)
@@ -59,7 +58,6 @@ class AES_cipher(CipherInterface):
             plaintext = y.decrypt(buffer)
         print("plaintext: ", plaintext)
         return plaintext
-        # pass
 
 # 
 class DES_cipher(CipherInterface):
@@ -68,31 +66,37 @@ class DES_cipher(CipherInterface):
 
     # def encrypt(self, lists, key):
     def encrypt(self, buffer, block_size):
-        global x
         print("buffer: ", buffer)
         print("block size: ", block_size)
         # encrypt and add padding if neccessary
+        # while len(buffer) % 8 != 0:
+            # buffer += b'0'
+        # ciphertext = x.encrypt(buffer)
+        
         if len(buffer) % 8 != 0:
             ciphertext = x.encrypt(pad(buffer, block_size))
         else:
-            ciphertext = x.encrypt(buffer)
+            ciphertext = x.decrypt(buffer)
+
         print("ciphertext: ", ciphertext)
         return ciphertext
-        # pass
 
     # def decrypt(self, output, matrix):
     def decrypt(self, buffer, block_size):
-        global x
         print("buffer: ", buffer)
         print("block size: ", block_size)
         # decrypt and add padding if neccessary
+        # while len(buffer) % 8 != 0:
+        #     buffer += b'0'
+        # plaintext = x.decrypt(buffer)
+
         if len(buffer) % 8 != 0:
             plaintext = unpad(x.decrypt(buffer), block_size)
         else:
-            plaintext = x.decrypt(buffer)
+            plaintext = x.decrypt(buffer)        
+
         print("plaintext: ", plaintext)
         return plaintext
-        # pass
 
 # note: buffer size = 8 was in 2nd param before
 # def chunks(filename, buffer_size):
