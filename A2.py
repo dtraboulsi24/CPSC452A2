@@ -1,12 +1,28 @@
 import sys
 import string
 
+from Crypto.Cipher import DES
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Util.Padding import unpad
+from Crypto import Random
+
+global x, y
+
 class CipherInterface:
     def __init__(self):
         self.key = None
 
     def setKey(self, key):
-        self.key = key
+        global x,y
+        # set key in bytes
+        self.key = key.encode()
+        if len(self.key) == 8:
+                x = DES.new(self.key,DES.MODE_ECB)
+        elif len(self.key) == 16:
+                y = AES.new(self.key, AES.MODE_ECB)
+        else:
+            print("Invalid Key")
 
     def ctol(self, string):
         string.encode('ascii')
@@ -16,38 +32,85 @@ class CipherInterface:
     def ltoc(self, data):
         pass
 
-class AES(CipherInterface):
+class AES_cipher(CipherInterface):
     def __init__(self):
-        super(AES, self).__init__()
+        super(AES_cipher, self).__init__()
 
-    def encode(self, lists, key):
-        pass
+    # def encrypt(self, lists, key):
+    def encrypt(self, buffer, block_size):
+        print("buffer: ", buffer)
+        print("block size: ", block_size)
+        # encrypt and add padding if neccessary
+        if len(buffer) % 16 != 0:
+            ciphertext = y.encrypt(pad(buffer, block_size))
+        else:
+            ciphertext = y.encrypt(buffer)
+        print("ciphertext: ", ciphertext)
+        return ciphertext
+        # pass
 
-    def decode(self, output, matrix):
-        pass
+    def decrypt(self, buffer, block_size):
+        print("buffer: ", buffer)
+        print("block size: ", block_size)
+        # decrypt and add padding if neccessary
+        if len(buffer) % 16 != 0:
+            plaintext = unpad(y.decrypt(buffer), block_size)
+        else:
+            plaintext = y.decrypt(buffer)
+        print("plaintext: ", plaintext)
+        return plaintext
+        # pass
 
-class DES(CipherInterface):
+# 
+class DES_cipher(CipherInterface):
     def __init__(self):
-        super(DES, self).__init__()
+        super(DES_cipher, self).__init__()
 
-    def encode(self, lists, key):
-        pass
+    # def encrypt(self, lists, key):
+    def encrypt(self, buffer, block_size):
+        global x
+        print("buffer: ", buffer)
+        print("block size: ", block_size)
+        # encrypt and add padding if neccessary
+        if len(buffer) % 8 != 0:
+            ciphertext = x.encrypt(pad(buffer, block_size))
+        else:
+            ciphertext = x.encrypt(buffer)
+        print("ciphertext: ", ciphertext)
+        return ciphertext
+        # pass
 
-    def decode(self, output, matrix):
-        pass
+    # def decrypt(self, output, matrix):
+    def decrypt(self, buffer, block_size):
+        global x
+        print("buffer: ", buffer)
+        print("block size: ", block_size)
+        # decrypt and add padding if neccessary
+        if len(buffer) % 8 != 0:
+            plaintext = unpad(x.decrypt(buffer), block_size)
+        else:
+            plaintext = x.decrypt(buffer)
+        print("plaintext: ", plaintext)
+        return plaintext
+        # pass
 
-def chunks(filename, buffer_size=8):
-    with open(filename, "rb") as fp:
-        chunk = fp.read(buffer_size)
-        while chunk:
-            yield chunk
-            chunk = fp.read(buffer_size)
+# note: buffer size = 8 was in 2nd param before
+# def chunks(filename, buffer_size):
+#     print("in chunks: buffer size: ", buffer_size)
+#     with open(filename, "rb") as fp:
+#         chunk = fp.read(buffer_size)
+#         while chunk:
+#             yield chunk
+#             chunk = fp.read(buffer_size)
 
-def blocks(filename, buffersize=8):
-    blocksize = buffersize / 2
-    for chunk in chunks(filename, buffersize):
-        block = [chunk[:blocksize],chunk[blocksize:]]
-        yield block
+# # note: buffer size = 8 was in 2nd param before
+# def blocks(filename, buffersize):
+#     print("in chunks: buffer size: ", buffersize)
+#     blocksize = buffersize / 2
+#     for chunk in chunks(filename, buffersize):
+#         type(chunk[:blocksize])
+#         block = [chunk[:blocksize],chunk[blocksize:]]
+#         yield block
 
 def main():
     cipher = None
@@ -55,29 +118,54 @@ def main():
     enc = sys.argv[3]
     inputFile = sys.argv[4]
     outputFile = sys.argv[5]
-    buffersize = 8
+    buffersize = 0
 
     if cipherName == "AES":
-        cipher = AES() 
-        buffersize = 8
-    elif cipherName == "DES":
-        cipher = DES()
+        cipher = AES_cipher() 
         buffersize = 16
+    elif cipherName == "DES":
+        cipher = DES_cipher()
+        buffersize = 8
     else:
         print("Enter supported cipher")
         exit
 
     cipher.setKey(sys.argv[2])
 
-    with open(outputFile, "wb") as fp:
-            for block in blocks(inputFile, buffersize):
-                if enc == "enc":
-                    fp.write(cipher.encrypt(block))
-                elif enc == "dec":
-                     fp.write(cipher.decrypt(block))
-                else:
-                    print("Choose enc/dec")
-                    exit
+    # open files for reading/writing later
+    input_file = open(inputFile, 'rb')
+    output_file = open(outputFile, 'wb')
+
+    # read 8/16 bytes depending on DES/AES
+    buffer = input_file.read(buffersize)
+    
+    while len(buffer) > 0:
+        if enc == 'ENC':
+            # store the encrypted data and write it to a file,
+            # then move the buffer to the next data block
+            cipher_text = cipher.encrypt(buffer, buffersize)
+            output_file.write(cipher_text)
+            buffer = input_file.read(buffersize)
+        elif enc == 'DEC':
+            # store the decrypted data and write it to a file,
+            # then move the buffer to the next data block
+            plain_text = cipher.decrypt(buffer, buffersize)
+            output_file.write(plain_text)
+            buffer = input_file.read(buffersize)
+
+    # close files
+    input_file.close()
+    output_file.close()
+
+    # with open(outputFile, "wb") as fp:
+    #         for block in blocks(inputFile, buffersize):
+    #             if enc == "enc":
+    #                 fp.write(cipher.encrypt(block, len(block)))
+    #             elif enc == "dec":
+    #                  fp.write(cipher.decrypt(block, len(block)))
+    #             else:
+    #                 print("Choose enc/dec")
+    #                 exit
 
 if __name__ == "__main__":
     if len(sys.argv) == 6:
