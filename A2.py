@@ -98,16 +98,13 @@ class DES_cipher(CipherInterface):
             plaintext = x.decrypt(buffer)        
 
         print("plaintext before replacing padding: ", plaintext)
-        # if ('\x01' in plaintext.decode('ASCII')):
-        #     print("padding found!")
-        #     pt_string = str(plaintext)
-        #     plaintext_ascii = pt_string.encode("ascii", "ignore")
-        #     plaintext = plaintext_ascii.decode()
-        #     pt_bytes = plaintext.encode()
-        #     print(pt_bytes)
-        #     return pt_bytes
-        #     print("plaintext decoded: ", plaintext.decode('ASCII'))
-
+        if ('\x01' in plaintext.decode('ASCII')):
+            print("padding found!")
+            plaintext = plaintext.rstrip(b'\x01')
+        elif ('\x07' in plaintext.decode('ASCII')):
+            print("space padding found!")
+            plaintext = plaintext.rstrip(b'\x07')
+        
         print("plaintext after replacing padding: ", plaintext)
         return plaintext
 
@@ -169,7 +166,9 @@ def main():
             plain_text = cipher.decrypt(buffer, buffersize)
             output_file.write(plain_text)
             buffer = input_file.read(buffersize)
-
+        else:
+            print("Choose ENC/DEC")
+            exit()
     # close files
     input_file.close()
     output_file.close()
